@@ -82,8 +82,9 @@ BENEFITS
     *   Easier debugging of compiled/filtered code. The ".pmc" has the real
         code you want to see.
 
-    *   Zero runtime penalty after compilation, because "perl" has already
-        been doing the ".pmc" check on every module load since 1999!
+    *   Zero additional runtime penalty after compilation, because "perl"
+        has already been doing the ".pmc" check on every module load since
+        1999!
 
 AUTHORS
     Audrey Tang <autrijus@autrijus.org>

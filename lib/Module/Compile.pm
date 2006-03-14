@@ -9,7 +9,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 # A lexical hash to keep track of which files have already been filtered
 my $filtered = {};
@@ -35,7 +35,9 @@ sub pmc_compiler { 1 };
 sub import {
     my ($class, $flag) = @_;
 
-    $class->pmc_set_base($flag || '') and return;
+    # Handler modules can do C< use Module::Compile -base; >. Make
+    # them ISA Module::Compile and get out of dodge.
+    $class->pmc_set_base($flag) and return;
 
     my ($module, $line) = (caller($class->pmc_stack_frame))[1, 2];
 
@@ -49,17 +51,22 @@ sub import {
     };
 
     $class->pmc_filter($callback);
+    # Is there a meaningful return value here?
 }
 
 # Set up inheritance
 sub pmc_set_base {
     my ($class, $flag) = @_;
+
+    # Handle the C<use Module::Compile -base;> command.
     if ($class eq __PACKAGE__ and $flag and $flag eq '-base') {
+        my $descendant = (caller 1)[0];;
         no strict 'refs';
-        push @{(caller(1))[0] . '::ISA'}, __PACKAGE__;
+        push @{$descendant . '::ISA'}, __PACKAGE__;
         return 1;
     }
-    return;
+
+    return 0;
 }
 
 # Get the code before the first source filter call
@@ -67,10 +74,10 @@ sub pmc_preface {
     my ($class, $module, $line) = @_;
     my $preface = '';
     local $/ = "\n";
-    open INPUT, $module
+    open my $input, "<", $module
       or die "Can't open '$module' for input:\n$!";
     for (1 .. ($line - 1)) {
-        $preface .= <INPUT>;
+        $preface .= <$input>;
     }
     return $preface;
 }
@@ -92,31 +99,52 @@ $check$preface$content
 sub freshness_check {
     my ($class, $module) = @_;
     my $sum = sprintf('%08X', do {
-        local ($_, $/) = $module;
-        open _ or die "Cannot open $_: $!;";
-        unpack('%32N*', <_>);
+        local $/;
+        open my $fh, "<", $module
+          or die "Cannot open $module: $!";
+        unpack('%32N*', <$fh>);
     });
     return << "...";
-##################((( 32-bit Checksum Validator )))##################
+#line 0 ##########((( 32-bit Checksum Validator )))##################
 BEGIN { use 5.006; local (*F, \$/); (\$F = __FILE__) =~ s!c\$!!; open(F)
-or die "Cannot open \$F: \$!"; binmode(F, ':crlf'); unpack('%32N*',<F>)
-== 0x$sum or die "Checksum failed for outdated .pmc file: \${F}c"}
-#####################################################################
+or die "Cannot open \$F: \$!"; binmode(F, ':crlf'); if (unpack('%32N*',
+\$F=readline(*F)) != 0x$sum) { use Filter::Util::Call; my \$f = \$F;
+filter_add(sub { filter_del(); 1 while filter_read(); \$_ = \$f; 1; })}
+#line 0
+} ###################################################################
 ...
 }
 
 # Write the output to the .pmc file
-# If we can't open the file, just return. The filtering will not be cached,
-# but that might be ok.
 sub pmc_output {
     my ($class, $module, $output) = @_;
     $class->pmc_can_output($module)
-      or return;
+      or return 0;
     my $pmc = $module . 'c';
-    open OUTPUT, "> $pmc"
-      or return;
-    print OUTPUT $output;
-    close OUTPUT;
+
+    # If we can't open the file, just return. The filtering will not be cached,
+    # but that might be ok.
+    open my $fh, ">", $pmc
+      or return 0;
+
+    # Protect against disk full or whatever else.
+    local $@;
+    eval {
+        print $fh $output
+           or die;
+        close $fh
+           or die;
+    };
+    if ( my $e = $@ ) {
+        # close $fh? die if unlink?
+        if ( -e $pmc ) {
+            unlink $pmc
+                or die "Can't delete errant $pmc: $!";
+        }
+        return 0;
+    }
+    
+    return 1;
 }
 
 # Check whether output can be written.
@@ -208,7 +236,7 @@ sub pmc_call {
     my $text = $chunk->[0];
     my @classes = splice(@{$chunk->[1]}, $offset, $length);
     for my $c (@classes) {
-        $_ = $text;
+        local $_ = $text;
         my $return = $c->pmc_compile($text);
         $text = (defined $return and $return !~ /^\d+$/)
             ? $return
@@ -222,15 +250,17 @@ sub pmc_call {
 sub pmc_chunk {
     my $class = shift;
     my $data = shift;
-    my @parts = split /^(\s*(?:use|no)\s+[\w\:]+.*\n)/m, $data;
+    # XXX \s -> [^\S\n]
+    my @parts = split /^(\s*(?:use|no)[^\S\n]+[\w\:\']+[^\n]*\n)/m, $data;
     my @chunks = ();
     my @classes = ();
     my $text = '';
     while (@parts) {
         my $part = shift @parts;
-        if ($part =~ /^\s*(use|no)\s+([\w\:]+).*\n/) {
+        # XXX \s -> [^\S\n]
+        if ($part =~ /^\s*(use|no)[^\S\n]+([\w\:\']+)[^\n]*\n/) {
             my ($use, $klass, $file) = ($1, $2, $2);
-            $file =~ s{::}{/}g;
+            $file =~ s{(?:::|')}{/}g;
             {
                 local $@;
                 eval { require "$file.pm" };
@@ -371,8 +401,8 @@ code you want to see.
 
 =item *
 
-Zero runtime penalty after compilation, because C<perl> has already been
-doing the C<.pmc> check on every module load since 1999!
+Zero additional runtime penalty after compilation, because C<perl> has
+already been doing the C<.pmc> check on every module load since 1999!
 
 =back
 
