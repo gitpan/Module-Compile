@@ -24,7 +24,14 @@ MANIFEST			This list of files
 META.yml
 README
 t/compile.t
+t/data1.t
+t/data2.t
+t/fold_blocks.t
+t/lexical.t
+t/lib/DataTest.pm
 t/lib/Foo.pm
 t/lib/Indented.pm
+t/lib/Upper.pm
+t/parse.t
 t/pmc.t
 t/TestModuleCompile.pm

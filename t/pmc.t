@@ -27,10 +27,15 @@ filter_add(sub { filter_del(); 1 while filter_read(); $_ = $f; 1; })}
 } ###################################################################
 package Foo;
 
+=head1 Tricksy
+__END__
+=cut
+
 
 sub greetings {
     print "Hello " . shift;
 }
+
 
 sub farewell {
     print "Goodbye " . shift;
@@ -40,3 +45,8 @@ sub farewell {
 
 __END__
 
+=head1 NAME
+
+t::Foo - Hello and Goodbye
+
+=cut

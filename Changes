@@ -1,4 +1,11 @@
 ---
+version: 0.15
+date:    Sun Mar 26 12:34:58 PST 2006
+changes:
+- Added ability to fold out potentially conflicting code.
+- Added a context block to pass more info to compilers.
+
+---
 version: 0.14
 date:    Tue Mar 14 13:02:11 PST 2006
 changes:
