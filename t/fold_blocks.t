@@ -1,4 +1,4 @@
-use t::TestModuleCompile tests => 6;
+use t::TestModuleCompile tests => 7;
 
 filters({ perl => 'process' });
 
@@ -74,6 +74,30 @@ fe5485c0595b48c3a4126af814e8d53517ecd1d8
 THIS
 5b35b1abf837461ac7f9b09d42f8560601b028f6
 THAT
+THERE
+}
+
+=== A double heredoc. Same END token
+--- perl
+sub foo {
+    my $self = shift;
+    $self->baz(<<END, <<END);
+THERE
+THAT
+END
+THIS
+END
+THERE
+}
+
+--- folded
+sub foo {
+    my $self = shift;
+    $self->baz(<<END, <<END);
+fe5485c0595b48c3a4126af814e8d53517ecd1d8
+END
+5b35b1abf837461ac7f9b09d42f8560601b028f6
+END
 THERE
 }
 

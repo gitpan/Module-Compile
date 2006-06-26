@@ -1,4 +1,4 @@
-#line 1 "inc/Spiffy.pm - /Users/ingy/lib/Spiffy.pm"
+#line 1
 package Spiffy;
 use strict;
 use 5.006001;

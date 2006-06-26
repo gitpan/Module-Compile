@@ -44,20 +44,18 @@ wishes, this document describes the default process.
 
 First the file is broken up into a tree of blocks:
 
-    File:
-        Global Code (before first package)
-        Packages:
-            Subs
-            Blocks
-            Heredocs
-            Comments
-            Pod
-        DATA Section
+    Global Code:
+        Subs
+        Blocks
+        Heredocs
+        Comments
+        Pod
+    DATA Section
 
-Next all the code is scan for 'use/no Compiler' lines. No use statement
+Next all the code is scanned for 'use/no Compiler' lines. No use statement
 can go past the end of it's containing block.
 
-An event stack is built such that innermost compilers are called first.o
+An event stack is built such that innermost compilers are called first.
 
 Dispatch proceeds. When a section is about to be comiled, the class is asked
 which parts of the source it wishes to see. Code, strings, comments, etc.
@@ -73,6 +71,6 @@ After compilation, the parsing steps should be rerun on the result. Maybe.
 This is a very edge case.
 
 The next outer scope compiler is called until everything is parsed. Then the
-tree is walked and results are substituted back in for the toens.
+tree is walked and results are substituted back in for the tokens.
 
 Done.

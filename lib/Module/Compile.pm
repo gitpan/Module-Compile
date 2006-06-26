@@ -1,7 +1,5 @@
 # To Do:
 #
-# - Add DATA sections into .pmc files
-# -- Make sure <DATA> is correct from both .pm and .pmc
 # - Make preface part of parsed code, since it might contain `package`
 #   statements or other scoping stuff.
 # - Build code into an AST.
@@ -11,7 +9,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 # A lexical hash to keep track of which files have already been filtered
 my $filtered = {};
@@ -36,8 +34,27 @@ sub pmc_caller_stack_frame { 0 };
 # of thing.
 sub pmc_is_compiler_module { 1 };
 
+sub new {
+    return bless {}, shift;
+}
+
+# This is called to determine whether the meaning of use/no is reversed.
+sub pmc_use_means_no { 0 }
+
 # All Module::Compile based modules inherit this import routine.
 sub import {
+    my ($class) = @_;
+    return if $class->pmc_use_means_no;
+    goto &{$class->can('pmc_import')};
+}
+
+sub unimport {
+    my ($class) = @_;
+    return unless $class->pmc_use_means_no;
+    goto &{$class->can('pmc_import')};
+}
+
+sub pmc_import {
     my ($class, @args) = @_;
 
     # Handler modules can do C< use Module::Compile -base; >. Make
@@ -65,10 +82,10 @@ sub pmc_set_base {
     my ($class, $flag) = @_;
 
     # Handle the C<use Module::Compile -base;> command.
-    if ($class eq __PACKAGE__ and $flag and $flag eq '-base') {
+    if ($class->isa(__PACKAGE__) and defined $flag and $flag eq '-base') {
         my $descendant = (caller 1)[0];;
         no strict 'refs';
-        push @{$descendant . '::ISA'}, __PACKAGE__;
+        push @{$descendant . '::ISA'}, $class;
         return 1;
     }
 
@@ -97,13 +114,12 @@ sub freshness_check {
         unpack('%32N*', <$fh>);
     });
     return << "...";
-#line 0 ##########((( 32-bit Checksum Validator )))##################
+#line 1 #########((( 32-bit Checksum Validator II )))################
 BEGIN { use 5.006; local (*F, \$/); (\$F = __FILE__) =~ s!c\$!!; open(F)
 or die "Cannot open \$F: \$!"; binmode(F, ':crlf'); if (unpack('%32N*',
 \$F=readline(*F)) != 0x$sum) { use Filter::Util::Call; my \$f = \$F;
-filter_add(sub { filter_del(); 1 while filter_read(); \$_ = \$f; 1; })}
-#line 0
-} ###################################################################
+filter_add(sub { filter_del(); 1 while &filter_read; \$_ = \$f; 1; })}}
+#line 1 #############################################################
 ...
 }
 
@@ -161,14 +177,14 @@ sub pmc_filter {
     # section or heredoc).
     my $folded_content = $class->pmc_fold_blocks($module_content);
     my $folded_data = '';
-    if ($folded_content =~ s/^((?:__(?:DATA|END)__\r?$).*)//ms) {
+    if ($folded_content =~ s/^((?:__(?:DATA|END)__$).*)//ms) {
         $folded_data = $1;
     }
     my $real_content = $class->pmc_unfold_blocks($folded_content);
     my $real_data = $class->pmc_unfold_blocks($folded_data);
 
-    # Calculate the number of lines to skip in the source filter, since we
-    # already have them in $real_content.
+    # Calculate the number of lines to skip in the source filter, since
+    # we already have them in $real_content.
     my @lines = ($real_content =~ /(.*\n)/g);
     my $lines_to_skip = @lines;
     $lines_to_skip -= $line_number;
@@ -186,7 +202,7 @@ sub pmc_filter {
             return $status if $status < 0;
             # Skip lines up to the DATA section.
             next if $lines_to_skip-- > 0;
-            if (/^__(?:END|DATA)__\r?$/) {
+            if (/^__(?:END|DATA)__$/) {
                 # Don't filter the DATA section, or else the DATA file
                 # handle becomes invalid.
 
@@ -207,6 +223,7 @@ sub pmc_filter {
             $_ = '';
         }
 
+        $real_content =~ s/\r//g;
         my $filtered_content = $class->pmc_process($real_content);
         $class->$post_process($filtered_content, $real_data);
 
@@ -287,7 +304,7 @@ sub pmc_call {
     for my $klass (@classes) {
         local $_ = $text;
         my $return = $klass->pmc_compile($text, ($context->{$klass} || {}));
-        $text = (defined $return and $return !~ /^\d+$/)
+        $text = (defined $return and $return !~ /^\d+\z/)
             ? $return
             : $_;
     }
@@ -302,14 +319,17 @@ sub pmc_parse_blocks {
     my @parts = split /^([^\S\n]*(?:use|no)[^\S\n]+[\w\:\']+[^\n]*\n)/m, $data;
     my @blocks = ();
     my @classes = ();
-    my $context = {
-    };
+    my $context = {};
     my $text = '';
     while (@parts) {
         my $part = shift @parts;
         if ($part =~ /^[^\S\n]*(use|no)[^\S\n]+([\w\:\']+)[^\n]*\n/) {
             my ($use, $klass, $file) = ($1, $2, $2);
             $file =~ s{(?:::|')}{/}g;
+            if ($klass =~ /^\d+$/) {
+                $text .= $part;
+                next;
+            }
             {
                 local $@;
                 eval { require "$file.pm" };
@@ -320,7 +340,7 @@ sub pmc_parse_blocks {
                 push @blocks, [$text, {%$context}, [@classes]];
                 $text = '';
                 @classes = grep {$_ ne $klass} @classes;
-                if ($use eq 'use') {
+                if (($use eq 'use') xor $klass->pmc_use_means_no) {
                     push @classes, $klass;
                     $context->{$klass}{use} = $part;
                 }
@@ -360,6 +380,7 @@ my $re_here = qr/
     (\3                 # $5 - possible right quote
      (?-s:.*\n))        #      and rest of the line
     (.*?\n)             # $6 - Heredoc content
+    (?<!\n[0-9a-fA-F]{40}\n)  # Not another digest
     (\4\n)              # $7 - Heredoc terminating line
 )
 /xsm;
@@ -434,9 +455,9 @@ sub pmc_unfold_blocks {
 
     $source =~ s/
         (
-            ^__DATA__\r?\n[0-9a-fA-F]{40}\r?\n
+            ^__DATA__\n[0-9a-fA-F]{40}\n
         |
-            ^=pod\s[0-9a-fA-F]{40}\r?\n=cut\r?\n
+            ^=pod\s[0-9a-fA-F]{40}\n=cut\n
         )
     /
         my $match = $1;
@@ -560,8 +581,6 @@ C<.pmc> files.
 
 Perl has native support for C<.pmc> files. It always checks for them, before
 loading a C<.pm> file.
-
-You get the following benefits:
 
 =head1 EXAMPLE
 

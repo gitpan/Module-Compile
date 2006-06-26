@@ -1,9 +1,7 @@
 abstract: Perl Module Compilation
-author: Ingy döt Net <ingy@cpan.org>
-build_requires: 
-  Test::Base: 0.50
+author: Audrey Tang <autrijus@autrijus.org>
 distribution_type: module
-generated_by: Module::Install version 0.54
+generated_by: Module::Install version 0.61
 license: perl
 name: Module-Compile
 no_index: 
@@ -11,5 +9,6 @@ no_index:
     - inc
     - t
 requires: 
-  perl: 5.6
-version: 0.15
+  Digest::SHA1: 0
+  perl: 5.6.0
+version: 0.16

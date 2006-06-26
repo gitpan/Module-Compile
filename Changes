@@ -1,4 +1,11 @@
 ---
+version: 0.16
+date:    Mon Jun 26 11:50:46 CDT 2006
+changes:
+- Pugs tree changes
+- Support v6
+
+---
 version: 0.15
 date:    Sun Mar 26 12:34:58 PST 2006
 changes:
