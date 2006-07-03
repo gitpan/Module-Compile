@@ -9,5 +9,6 @@ requires        'Digest::SHA1';
 use_test_base;
 
 clean_files     't/lib/*.pmc';
+clean_files     't/*.tc';
 
 WriteAll;

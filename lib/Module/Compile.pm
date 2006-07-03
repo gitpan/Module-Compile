@@ -9,7 +9,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 # A lexical hash to keep track of which files have already been filtered
 my $filtered = {};
@@ -48,6 +48,7 @@ sub import {
     goto &{$class->can('pmc_import')};
 }
 
+# Treat unimport like import if use means no
 sub unimport {
     my ($class) = @_;
     return unless $class->pmc_use_means_no;
@@ -71,10 +72,33 @@ sub pmc_import {
         $class->pmc_output($module, $output);
     };
 
+    $class->pmc_check_compiled_file($module);
+
     $class->pmc_filter($module, $line, $callback);
 
     # Is there a meaningful return value here?
     return;
+}
+
+# File might not be a module (.pm) and might be compiled already.
+# If so, run the compiled file.
+sub pmc_check_compiled_file {
+    my ($class, $file) = @_;
+
+    if (defined $file and $file !~ /\.pm$/i) {
+        # Do the freshness check ourselves
+        my $pmc = $file.'c';
+        $class->pmc_run_compiled_file($pmc), die
+          if -s $pmc and (-M $pmc <= -M $file);
+    }
+}
+
+sub pmc_run_compiled_file {
+    my ($class, $pmc) = @_;
+    my ($package) = caller(2);
+    eval "package $package; do \$pmc";
+    die $@ if $@;
+    exit 0;
 }
 
 # Set up inheritance
@@ -111,15 +135,17 @@ sub freshness_check {
         local $/;
         open my $fh, "<", $module
           or die "Cannot open $module: $!";
+        binmode($fh, ':crlf'); # normalize CRLF for consistent checksum
         unpack('%32N*', <$fh>);
     });
     return << "...";
-#line 1 #########((( 32-bit Checksum Validator II )))################
+################((( 32-bit Checksum Validator III )))################
+#line 1
 BEGIN { use 5.006; local (*F, \$/); (\$F = __FILE__) =~ s!c\$!!; open(F)
 or die "Cannot open \$F: \$!"; binmode(F, ':crlf'); if (unpack('%32N*',
 \$F=readline(*F)) != 0x$sum) { use Filter::Util::Call; my \$f = \$F;
 filter_add(sub { filter_del(); 1 while &filter_read; \$_ = \$f; 1; })}}
-#line 1 #############################################################
+#line 1
 ...
 }
 
@@ -158,7 +184,8 @@ sub pmc_output {
 # Check whether output can be written.
 sub pmc_can_output {
     my ($class, $file_path) = @_;
-    return $file_path =~ /\.pm$/;
+    return 1;
+#     return $file_path =~ /\.pm$/;
 }
 
 # We use a source filter to get all the code for compiling.
@@ -741,9 +768,9 @@ Module::Install
 
 =head1 AUTHORS
 
-Audrey Tang <autrijus@autrijus.org>
-
 Ingy döt Net <ingy@cpan.org>
+
+Audrey Tang <autrijus@autrijus.org>
 
 =head1 COPYRIGHT
 

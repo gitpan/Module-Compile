@@ -1,5 +1,5 @@
 abstract: Perl Module Compilation
-author: Audrey Tang <autrijus@autrijus.org>
+author: "Ingy d\xC3\xB6t Net <ingy@cpan.org>"
 distribution_type: module
 generated_by: Module::Install version 0.61
 license: perl
@@ -11,4 +11,4 @@ no_index:
 requires: 
   Digest::SHA1: 0
   perl: 5.6.0
-version: 0.16
+version: 0.17
