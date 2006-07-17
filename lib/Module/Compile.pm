@@ -9,7 +9,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 # A lexical hash to keep track of which files have already been filtered
 my $filtered = {};
@@ -95,11 +95,13 @@ sub pmc_check_compiled_file {
 
 sub pmc_run_compiled_file {
     my ($class, $pmc) = @_;
-    my ($package) = caller(2);
+    my ($package) = caller($class->pmc_file_caller_frame());
     eval "package $package; do \$pmc";
     die $@ if $@;
     exit 0;
 }
+
+sub pmc_file_caller_frame { 2 }
 
 # Set up inheritance
 sub pmc_set_base {

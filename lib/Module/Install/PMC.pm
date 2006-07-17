@@ -29,12 +29,16 @@ sub pmc_support {
 
     $self->realclean_files("@pmcs");
 
-    $postamble .= "\nconfig ::\n";
+    $postamble .= "\nconfig :: ".join(" ",@pmcs)."\n\n";
 
     for my $pmc (@pmcs) {
+        my $pm = $pmc;
+        chop($pm);
         $postamble .= <<".";
+$pmc: $pm
 \t-\$(NOECHO) \$(CHMOD) 644 $pmc
 \t-\$(NOECHO) \$(TOUCH) $pmc
+
 .
     }
 
