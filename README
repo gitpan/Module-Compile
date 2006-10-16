@@ -43,8 +43,6 @@ DESCRIPTION
     Perl has native support for ".pmc" files. It always checks for them,
     before loading a ".pm" file.
 
-    You get the following benefits:
-
 EXAMPLE
     You can declare a "v6.pm" compiler with:
 
@@ -185,9 +183,9 @@ SEE ALSO
     Module::Install
 
 AUTHORS
-    Audrey Tang <autrijus@autrijus.org>
-
     Ingy döt Net <ingy@cpan.org>
+
+    Audrey Tang <autrijus@autrijus.org>
 
 COPYRIGHT
     Copyright (c) 2006. Ingy döt Net. All rights reserved.

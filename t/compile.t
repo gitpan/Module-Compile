@@ -1,4 +1,4 @@
-use t::TestModuleCompile tests => 1;
+use t::TestModuleCompile tests => 2;
 
 filters {
     perl => 'eval',
@@ -8,6 +8,44 @@ filters {
 run_is pm => 'pmc';
 
 __DATA__
+
+=== use_means_now
+--- perl
+package Compile::Now;
+use strict;
+use Module::Compile -base;
+use XXX;
+
+sub pmc_use_means_now { 1 };
+
+sub pmc_compile {
+    my ($class, $content, $context) = @_;
+    my $args = $context->{use}
+    ? ' ' . $context->{use} : '';
+    chomp $args;
+    return "# Do it now$args\n";
+}
+--- pm
+package Foo;
+# start
+use Compile::Now 'c', 'd';
+# middle
+use Data::Dumper;
+# earth
+use Compile::Now 'a', 'b';
+# done
+1;
+--- pmc
+package Foo;
+# start
+# Do it now use Compile::Now 'c', 'd';
+# middle
+use Data::Dumper;
+# earth
+# Do it now use Compile::Now 'a', 'b';
+# done
+1;
+
 
 === Nested Compilers
 --- perl

@@ -1,4 +1,13 @@
 ---
+version: 0.19
+date:    Sun Oct  1 10:05:13 CST 2006
+changes:
+- Recognize whitespace after the heredoc marker, e.g. "<< 'FOO'"
+- Don't treat a literal '<<' string by itself as a heredoc marker.
+- Don't treat '<<=' as a heredoc marker.
+- Support 'use_means_now'.
+
+---
 version: 0.18
 date:    Mon Jul 17 14:33:39 PDT 2006
 changes:

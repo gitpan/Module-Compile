@@ -1,4 +1,4 @@
-use t::TestModuleCompile tests => 7;
+use t::TestModuleCompile tests => 9;
 
 filters({ perl => 'process' });
 
@@ -24,6 +24,34 @@ END
 
 --- folded
 my $x = "~ ~~ ~~~ ~~~~ ~~~~~";
+
+sub foo {
+    my $self = shift;
+    $self->baz(<<END);
+8dc957d71f448e926d28ebe8444d5b33c1d69dc2
+END
+}
+
+
+=== Folded heredoc, ignoring <<=
+--- perl
+my $x = 1234;
+$x <<= 3;
+my $y = 4321;
+
+sub foo {
+    my $self = shift;
+    $self->baz(<<END);
+sub bar {
+    print "bar";
+} 
+END
+}
+
+--- folded
+my $x = 1234;
+$x <<= 3;
+my $y = 4321;
 
 sub foo {
     my $self = shift;
@@ -153,6 +181,21 @@ END
 THREE
 
 
+=== Not a heredoc, but a literal "<<"
+--- perl
+(
+
+    '<<'  => 
+    '>>',
+
+);
+--- folded
+(
+
+    '<<'  => 
+    '>>',
+
+);
 === All kinds
 --- perl
 print "ok 1";

@@ -9,7 +9,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 # A lexical hash to keep track of which files have already been filtered
 my $filtered = {};
@@ -40,6 +40,9 @@ sub new {
 
 # This is called to determine whether the meaning of use/no is reversed.
 sub pmc_use_means_no { 0 }
+
+# This is called to determine whether the use line means a one line section.
+sub pmc_use_means_now { 0 }
 
 # All Module::Compile based modules inherit this import routine.
 sub import {
@@ -345,13 +348,12 @@ sub pmc_call {
 sub pmc_parse_blocks {
     my $class = shift;
     my $data = shift;
-    my @parts = split /^([^\S\n]*(?:use|no)[^\S\n]+[\w\:\']+[^\n]*\n)/m, $data;
     my @blocks = ();
     my @classes = ();
     my $context = {};
     my $text = '';
-    while (@parts) {
-        my $part = shift @parts;
+    my @parts = split /^([^\S\n]*(?:use|no)[^\S\n]+[\w\:\']+[^\n]*\n)/m, $data;
+    for my $part (@parts) {
         if ($part =~ /^[^\S\n]*(use|no)[^\S\n]+([\w\:\']+)[^\n]*\n/) {
             my ($use, $klass, $file) = ($1, $2, $2);
             $file =~ s{(?:::|')}{/}g;
@@ -371,7 +373,13 @@ sub pmc_parse_blocks {
                 @classes = grep {$_ ne $klass} @classes;
                 if (($use eq 'use') xor $klass->pmc_use_means_no) {
                     push @classes, $klass;
+                    $context->{$klass} = {%{$context->{$klass} || {}}}; 
                     $context->{$klass}{use} = $part;
+                    if ($klass->pmc_use_means_now) {
+                        push @blocks, ['', {%$context}, [@classes]];
+                        @classes = grep {$_ ne $klass} @classes;
+                        delete $context->{$klass};
+                    }
                 }
                 else {
                     delete $context->{$klass};
@@ -393,8 +401,8 @@ sub pmc_parse_blocks {
 # Compile/Filter some source code into something else. This is almost
 # always overridden in a subclass.
 sub pmc_compile {
-    my ($class, $source) = @_;
-    return $source;
+    my ($class, $source_code_string, $context_hashref) = @_;
+    return $source_code_string;
 }
 
 # Regexp fragments for matching heredoc, pod section, comment block and
@@ -403,8 +411,9 @@ my $re_here = qr/
 (?:                     # Heredoc starting line
     ^                   # Start of some line
     ((?-s:.*?))         # $2 - text before heredoc marker
-    <<                  # heredoc marker
-    (['"\{\[]?)         # $3 - possible left quote
+    <<(?!=)             # heredoc marker
+    [\t\x20]*           # whitespace between marker and quote
+    ((?>['"]?))         # $3 - possible left quote
     ([\w\-\.]*)         # $4 - heredoc terminator
     (\3                 # $5 - possible right quote
      (?-s:.*\n))        #      and rest of the line
