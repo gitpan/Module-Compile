@@ -1,4 +1,9 @@
 ---
+version: 0.20
+date:    Tue Oct 17 02:16:18 PDT 2006
+changes:
+- Removed a leftover 'use XXX;' that made tests fail.
+---
 version: 0.19
 date:    Sun Oct  1 10:05:13 CST 2006
 changes:

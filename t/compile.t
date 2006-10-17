@@ -14,7 +14,6 @@ __DATA__
 package Compile::Now;
 use strict;
 use Module::Compile -base;
-use XXX;
 
 sub pmc_use_means_now { 1 };
 
