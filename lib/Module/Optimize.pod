@@ -1,27 +1,8 @@
-##
-# name:      Module::Optimize
-# abstract:  Perl Module Optimization
-# author:
-# - Audrey Tang <autrijus@autrijus.org>
-# - Ingy döt Net <ingy@ingy.net>
-# license:   perl
-# copyright: 2006, 2011
+=encoding utf8
 
-package Module::Optimize;
-use strict;
-use warnings;
-use Module::Compile -base;
+=head1 NAME
 
-sub pmc_is_optimizer_module { 1 }
-
-# Compile/Filter some source code into something else. This is almost
-# always overridden in a subclass.
-sub pmc_optimize {
-    my ($class, $source) = @_;
-    return $source;
-}
-
-1;
+Module::Optimize - Perl Module Optimization
 
 =head1 SYNOPSIS
 
@@ -70,3 +51,18 @@ You get the following benefits:
 =head1 SEE ALSO
 
 Module::Compile
+
+=head1 AUTHOR
+
+Audrey Tang <autrijus@autrijus.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2006, 2011. Audrey Tang.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+See http://www.perl.com/perl/misc/Artistic.html
+
+=cut

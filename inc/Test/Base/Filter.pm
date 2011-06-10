@@ -1,7 +1,4 @@
 #line 1
-#. TODO:
-#.
-
 #===============================================================================
 # This is the default class for handling Test::Base data filtering.
 #===============================================================================
@@ -214,7 +211,8 @@ sub lines {
 
 sub norm {
     $self->assert_scalar(@_);
-    my $text = shift || '';
+    my $text = shift;
+    $text = '' unless defined $text;
     $text =~ s/\015\012/\n/g;
     $text =~ s/\r/\n/g;
     return $text;
@@ -340,4 +338,4 @@ sub _write_to {
 
 __DATA__
 
-#line 638
+#line 636
