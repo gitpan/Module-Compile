@@ -1,29 +1,28 @@
 ---
 abstract: 'Perl Module Compilation'
 author:
-  - 'Ingy döt Net <ingy@ingy.net>'
-build_requires:
-  ExtUtils::MakeMaker: 6.42
+  - 'Ingy döt Net <ingy@cpan.org>'
+build_requires: {}
 configure_requires:
-  ExtUtils::MakeMaker: 6.42
-distribution_type: module
-generated_by: 'Module::Install version 1.01'
+  ExtUtils::MakeMaker: '6.30'
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.132830'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
-module_name: Module::Compile
+  version: '1.4'
 name: Module-Compile
 no_index:
   directory:
     - inc
     - t
+    - xt
+    - example
 requires:
-  Digest::SHA1: 2.13
-  Filter::Util::Call: 0
-  perl: 5.8.3
+  Digest::SHA1: '2.13'
+  perl: v5.8.1
 resources:
-  homepage: http://github.com/ingydotnet/module-compile-pm/tree
-  license: http://dev.perl.org/licenses/
-  repository: git://github.com/ingydotnet/module-compile-pm.git
-version: 0.23
+  bugtracker: https://github.com/ingydotnet/module-compile-pm/issues
+  homepage: https://github.com/ingydotnet/module-compile-pm
+  repository: https://github.com/ingydotnet/module-compile-pm.git
+version: '0.24'
