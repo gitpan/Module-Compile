@@ -7,6 +7,9 @@ META.json
 META.yml
 Makefile.PL
 README
+inc/Spiffy.pm
+inc/Test/Base.pm
+inc/Test/Base/Filter.pm
 lib/Module/Compile.pm
 lib/Module/Compile.pod
 lib/Module/Compile/Opt.pm
