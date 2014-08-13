@@ -1,3 +1,6 @@
+0.25 Wed Aug 13 11:23:45 PDT 2014
+ - Fix indexing by not splitting VERSION lines (Module::Install modules)
+
 0.24 Tue Aug 12 12:29:12 PDT 2014
  - Switch to Zilla::Dist
 

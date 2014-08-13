@@ -25,4 +25,4 @@ resources:
   bugtracker: https://github.com/ingydotnet/module-compile-pm/issues
   homepage: https://github.com/ingydotnet/module-compile-pm
   repository: https://github.com/ingydotnet/module-compile-pm.git
-version: '0.24'
+version: '0.25'
