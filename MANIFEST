@@ -16,7 +16,6 @@ lib/Module/Compile/Opt.pm
 lib/Module/Install/Admin/PMC.pm
 lib/Module/Install/PMC.pm
 lib/Module/Optimize.pm
-t/000-compile-modules.t
 t/TestModuleCompile.pm
 t/Testorz.pm
 t/compile.t
