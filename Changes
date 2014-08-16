@@ -1,3 +1,6 @@
+0.28 Sat Aug 16 02:19:16 PDT 2014
+ - Eliminate File::Basename
+
 0.27 Fri Aug 15 18:45:31 PDT 2014
  - Add t/000-compile-modules.t
 

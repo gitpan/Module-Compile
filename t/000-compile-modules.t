@@ -8,17 +8,7 @@ sub test {
     s{^lib[/\\]}{};
     s{\.pm$}{};
     s{[/\\]}{::}g;
-    if (/^(?:
-        Alt:: |
-        Devel::Local\b |
-        Inline:: |
-        Sex$
-    )/x) {
-        ok eval("require $_; 1"), "require $_; # OK";
-    }
-    else {
-        use_ok $_;
-    }
+    use_ok $_;
 }
 
 find {
