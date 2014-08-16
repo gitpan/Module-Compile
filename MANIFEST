@@ -13,6 +13,8 @@ inc/Test/Base/Filter.pm
 lib/Module/Compile.pm
 lib/Module/Compile.pod
 lib/Module/Compile/Opt.pm
+lib/Module/Compile/Opt.pod
+lib/Module/Compile/Optimize.pod
 lib/Module/Install/Admin/PMC.pm
 lib/Module/Install/PMC.pm
 lib/Module/Optimize.pm

@@ -200,7 +200,7 @@ DISTRIBUTION SUPPORT
     prerequisites.
 
 SEE ALSO
-    Module::Install
+    *   Module::Install
 
 AUTHORS
     *   Ingy döt Net <ingy@cpan.org>
