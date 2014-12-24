@@ -186,9 +186,8 @@ PARSING AND DISPATCH
 
 DISTRIBUTION SUPPORT
     Module::Install makes it terribly easy to prepare a module distribution
-    with compiled .pmc files. Module::Compile installs a
-    Module::Install::PMC plugin. All you need to do is add this line to your
-    Makefile.PL:
+    with compiled .pmc files. See Module::Install::PMC. All you need to do
+    is add this line to your Makefile.PL:
 
         pmc_support;
 
@@ -201,6 +200,8 @@ DISTRIBUTION SUPPORT
 
 SEE ALSO
     *   Module::Install
+
+    *   Module::Install::PMC
 
 AUTHORS
     *   Ingy döt Net <ingy@cpan.org>

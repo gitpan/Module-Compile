@@ -1,3 +1,6 @@
+0.35 Wed Dec 24 13:10:28 PST 2014
+ - Remove Module::Install::PMC from dist
+
 0.34 Sat Aug 16 16:09:53 PDT 2014
  - Fix strict/warnings
 

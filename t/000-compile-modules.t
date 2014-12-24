@@ -4,12 +4,12 @@ use Test::More;
 use File::Find;
 
 sub test {
-    -f and /\.pm$/ or return;
-    s{^lib[/\\]}{};
-    s{\.pm$}{};
-    s{[/\\]}{::}g;
+    s{^lib/(.*)\.pm$}{$1} or return;
+    s{/}{::}g;
     use_ok $_;
 }
+
+$ENV{PERL_ZILD_TEST_000_COMPILE_MODULES} = 1;
 
 find {
     wanted => \&test,
